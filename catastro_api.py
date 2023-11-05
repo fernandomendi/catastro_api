@@ -31,8 +31,21 @@ class CatastroAPI:
         municipios_df["name"] = municipios_df["nm"]
         return municipios_df[["provincia_id", "id", "name"]]
 
-    def __get_vias(self, municipio):
-        return None
+    def __get_vias(self, provincia, municipio):
+        params = {
+            "Provincia" : provincia,
+            "Municipio" : municipio,
+            "TipoVia" : "",
+            "NombreVia" : ""
+        }
+        response = requests.get(self.endpoint + "ConsultaVia", params=params, timeout=self.request_timeout)
+        payload = xmltodict.parse(response.content, xml_attribs=False)
+
+        vias_df = pd.DataFrame(payload["consulta_callejero"]["callejero"]["calle"])
+        vias_df[["provincia_id", "municipio_id"]] = vias_df["loine"].apply(pd.Series)
+        vias_df[["via_id", "via_type", "via_name"]] = vias_df["dir"].apply(pd.Series)
+
+        return vias_df[["provincia_id", "municipio_id", "via_id", "via_type", "via_name"]]
 
     def __get_numeros(self, via):
         return None
