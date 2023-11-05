@@ -1,3 +1,7 @@
+import requests
+import xmltodict
+import pandas as pd
+
 class CatastroAPI:
     def __init__(self):
         self.endpoint = "http://ovc.catastro.meh.es/ovcservweb/OVCSWLocalizacionRC"
@@ -7,7 +11,12 @@ class CatastroAPI:
         return getattr(self, f"_CatastroAPI__get_{path}")(**kwargs)
 
     def __get_provincias(self):
-        return None
+        response = requests.get(self.endpoint + "/OVCCallejero.asmx/ConsultaProvincia", timeout=self.request_timeout)
+        payload = xmltodict.parse(response.content, xml_attribs=False)
+        
+        provincias_df = pd.DataFrame(payload["consulta_provinciero"]["provinciero"]["prov"])
+        provincias_df.columns = ["id", "name"]
+        return provincias_df
 
     def __get_municipios(self, provincia):
         return None
